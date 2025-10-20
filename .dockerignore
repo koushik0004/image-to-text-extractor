@@ -1,0 +1,79 @@
+```
+
+**Description of Dockerfile:**
+- **Base Image**: Python 3.12 slim (smaller size, faster builds)
+- **Environment Variables**: Optimizes Python behavior in containers
+- **Layering**: Requirements copied first for better Docker cache utilization
+- **Port 8501**: Standard Streamlit port
+- **Health Check**: Monitors container health
+- **Entry Point**: Configures Streamlit to run properly in Docker
+
+---
+
+Create `.dockerignore`:
+```
+# .dockerignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Misc
+*.log
+.cache/

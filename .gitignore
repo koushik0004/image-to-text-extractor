@@ -1,15 +1,40 @@
-# Streamlit secrets
-.streamlit/secrets.toml
+# .gitignore
+
+# Environment variables (contains sensitive API keys)
+.env
 
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Environment
-.env
+*.so
+.Python
+env/
 venv/
-conda_env/
+ENV/
+*.egg-info/
+.installed.cfg
+*.egg
+dist/
+build/
 
-# macOS
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/

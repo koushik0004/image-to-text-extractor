@@ -1,0 +1,84 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # Main application service
+  app:
+    # Build configuration
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # Container name
+    container_name: image-text-extractor
+    
+    # Image name
+    image: image-text-extractor:latest
+    
+    # Port mapping - host:container
+    ports:
+      - "9001:8501"
+    
+    # Environment variables
+    environment:
+      # Load API key from .env file
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      
+      # Optional: Add more environment variables
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    
+    # Alternative: Load all variables from .env file
+    env_file:
+      - .env
+    
+    # Volume mounts (optional - for development)
+    # Uncomment below lines for hot-reloading during development
+    # volumes:
+    #   - ./app.py:/app/app.py
+    #   - ./uploads:/app/uploads
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits (optional but recommended)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network configuration
+    networks:
+      - app-network
+
+# Define networks
+networks:
+  app-network:
+    driver: bridge
+    name: text-extractor-network
+
+# Optional: Define volumes for persistent data
+volumes:
+  app-data:
+    driver: local

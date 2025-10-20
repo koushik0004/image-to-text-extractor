@@ -1,0 +1,31 @@
+# docker-compose.override.yml
+# This file is automatically merged with docker-compose.yml
+# Use this for development-specific configurations
+
+version: '3.8'
+
+services:
+  app:
+    # Enable hot-reloading for development
+    volumes:
+      - ./app.py:/app/app.py:ro
+      - ./uploads:/app/uploads
+    
+    # Override environment for development
+    environment:
+      - STREAMLIT_SERVER_FILE_WATCHER_TYPE=poll
+      - STREAMLIT_SERVER_RUN_ON_SAVE=true
+    
+    # Remove resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+    
+    # Build with no cache for development
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from:
+        - image-text-extractor:latest

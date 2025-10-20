@@ -1,0 +1,59 @@
+# docker-compose.prod.yml
+# Use this for production deployment
+# Command: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  app:
+    # Use pre-built image instead of building
+    image: image-text-extractor:latest
+    
+    # Production restart policy
+    restart: always
+    
+    # Stricter resource limits for production
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      
+      # Replicas for load balancing (if needed)
+      replicas: 1
+      
+      # Update configuration
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      
+      # Rollback configuration
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+    
+    # No volume mounts in production (security)
+    volumes: []
+    
+    # Enhanced security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Read-only root filesystem (optional, may need adjustments)
+    # read_only: true
+    
+    # Temporary filesystem for runtime data
+    tmpfs:
+      - /tmp
+      - /app/.streamlit
+    
+    # User to run the application (non-root)
+    # user: "1000:1000"
+
+# Production-grade logging with log aggregation
+# Example: ELK stack, Fluentd, etc.

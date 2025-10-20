@@ -159,6 +159,119 @@ Error: permission denied while trying to connect to Docker daemon
 sudo usermod -aG docker $USER
 ```
 
+## 🐳 Docker Compose Deployment (Recommended)
+
+### Quick Start with Docker Compose
+
+1. **Setup environment**
+```bash
+   cp .env.example .env
+   # Edit .env and add your Gemini API key
+```
+
+2. **Start the application**
+```bash
+   docker-compose up -d
+```
+
+3. **Access the application**
+   Open http://localhost:8501
+
+4. **View logs**
+```bash
+   docker-compose logs -f
+```
+
+5. **Stop the application**
+```bash
+   docker-compose down
+```
+
+### Docker Compose Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `docker-compose up -d` | Start in background |
+| `docker-compose up` | Start in foreground (see logs) |
+| `docker-compose down` | Stop and remove containers |
+| `docker-compose restart` | Restart the application |
+| `docker-compose logs -f` | View logs (follow mode) |
+| `docker-compose ps` | Check container status |
+| `docker-compose build` | Rebuild the image |
+| `docker-compose build --no-cache` | Rebuild without cache |
+
+### Using Makefile (Optional)
+
+If you have `make` installed:
+```bash
+make help      # Show all available commands
+make up        # Start application
+make down      # Stop application
+make logs      # View logs
+make dev       # Start in development mode
+make prod      # Start in production mode
+make clean     # Clean all resources
+```
+
+### Environment Modes
+
+**Development Mode:**
+```bash
+docker-compose up
+# or
+make dev
+```
+- Hot-reloading enabled
+- Source code mounted as volume
+- Verbose logging
+
+**Production Mode:**
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# or
+make prod
+```
+- Optimized for performance
+- No source code mounting
+- Resource limits enforced
+- Enhanced security
+
+### Troubleshooting Docker Compose
+
+**Issue: Port already in use**
+```bash
+# Find process using port 8501
+lsof -i :8501
+
+# Kill the process or change port in docker-compose.yml
+```
+
+**Issue: API key not found**
+```bash
+# Verify .env file exists and contains API key
+cat .env
+
+# Restart containers
+docker-compose restart
+```
+
+**Issue: Container keeps restarting**
+```bash
+# Check logs
+docker-compose logs --tail=100 app
+
+# Check health status
+docker-compose ps
+```
+
+**Issue: Build fails**
+```bash
+# Clean and rebuild
+docker-compose down -v
+docker-compose build --no-cache
+docker-compose up -d
+```
+
 ## 📝 License
 
 This project is open source and available under the MIT License.

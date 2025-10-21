@@ -130,6 +130,49 @@ The app looks for the API key in this order:
 - The app handles both printed and handwritten text
 - Supports multiple languages automatically
 
+## 🤖 Local Trained Model
+
+The application now features a **Local Trained Model** page that uses EasyOCR - an open-source OCR engine that runs entirely within the Docker container. This provides a privacy-focused alternative to cloud-based text extraction.
+
+### Key Features
+
+- 🔒 **Privacy-focused**: No data leaves your container
+- 🚀 **Offline capability**: Works without internet connection
+- 🌍 **Multi-language support**: Supports 5+ languages including English, Spanish, French, German, and Chinese
+- 💨 **Fast processing**: Local inference, no network delays
+- 📱 **Handwriting support**: Recognizes handwritten text
+
+### How to Use
+
+1. **Navigate to Local Trained Model**: Select the "Local Trained Model" page from the sidebar
+2. **Upload Image**: Choose an image file (PNG, JPG, JPEG, WEBP, BMP, TIFF)
+3. **Select Languages**: Choose the languages expected in your image
+4. **Extract Text**: Click "Extract Text with EasyOCR" to get results
+5. **Download Results**: Save extracted text as a TXT file
+
+### Technical Details
+
+The Local Trained Model uses **EasyOCR** (qualcomm/EasyOCR) from HuggingFace, which is a CNN + LSTM based OCR engine. The models are pre-downloaded during Docker build and cached in the container for persistent offline usage.
+
+**Supported Languages**:
+- 🇬🇧 English (`en`)
+- 🇪🇸 Spanish (`es`)
+- 🇫🇷 French (`fr`)
+- 🇩🇪 German (`de`)
+- 🇨🇳 Chinese (Simplified) (`ch_sim`)
+- 🇦🇪 Arabic (`ar`)
+- 🇮🇳 Hindi (`hi`)
+- 🇯🇵 Japanese (`ja`)
+- 🇰🇷 Korean (`ko`)
+- 🇷🇺 Russian (`ru`)
+
+### Model Information
+
+- **Model**: EasyOCR (qualcomm/EasyOCR) from HuggingFace
+- **Type**: CNN + LSTM based OCR
+- **Accuracy**: High for printed text and handwriting
+- **Processing**: CPU-based inference for broad compatibility
+
 ## 🛠️ Troubleshooting
 
 ### API Key Issues

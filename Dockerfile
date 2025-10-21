@@ -30,8 +30,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY app.py .
+COPY Home.py .
 COPY .env.example .
+COPY pages/ ./pages/
 
 # Create a directory for user uploads (optional)
 RUN mkdir -p /app/uploads
@@ -45,7 +46,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Run the application
 # The --server.address flag makes it accessible from outside the container
-ENTRYPOINT ["streamlit", "run", "app.py", \
+ENTRYPOINT ["streamlit", "run", "Home.py", \
             "--server.address=0.0.0.0", \
             "--server.port=8501", \
             "--server.headless=true", \

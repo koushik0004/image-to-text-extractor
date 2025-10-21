@@ -16,26 +16,51 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 # Prevents Python from buffering stdout and stderr
 ENV PYTHONUNBUFFERED=1
+# Set HOME environment for model downloads
+ENV HOME=/root
 
-# Install system dependencies (if needed)
+# Install system dependencies
 # RUN apt-get update && apt-get install -y \
 #     build-essential \
+#     libglib2.0-0 \
+#     libsm6 \
+#     libxext6 \
+#     libxrender-dev \
+#     libgomp1 \
 #     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libopenblas-dev \
+    libblas-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies using requirements.txt with PyTorch CPU wheels
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+# Install PyTorch CPU wheels first to ensure compatibility
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Install remaining dependencies from requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Download EasyOCR models during build for offline usage
+# This ensures models are available in the container without runtime downloads
+RUN python -c "import easyocr; reader = easyocr.Reader(['en', 'es', 'fr', 'de']); print('EasyOCR models downloaded successfully')" || echo "EasyOCR download failed, will download at runtime"
 
 # Copy application code
 COPY Home.py .
 COPY .env.example .
 COPY pages/ ./pages/
+COPY utils/ ./utils/
 
-# Create a directory for user uploads (optional)
+# Create directories for user uploads and model storage
 RUN mkdir -p /app/uploads
+RUN mkdir -p /root/.EasyOCR/model
 
 # Expose Streamlit default port
 EXPOSE 8501

@@ -109,7 +109,7 @@ In `app.py`, line 68, you can change the model:
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # For better accuracy
-model = genai.GenerativeModel('gemini-1.5-pro')
+model = genai.GenerativeModel('gemini-2.5-pro')
 ```
 
 ### API Key Setup Locations

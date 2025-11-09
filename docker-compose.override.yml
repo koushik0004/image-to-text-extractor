@@ -7,22 +7,36 @@ version: '3.8'
 services:
   app:
     # Enable hot-reloading for development
+    # Mount all source files from your local disk
     volumes:
-      - ./Home.py:/app/Home.py:ro
+      # Main application file
+      - ./Home.py:/app/Home.py
+
+      # Mount all pages directory (includes new pages automatically)
+      - ./pages:/app/pages
+
+      # Mount utils directory
+      - ./utils:/app/utils
+
+      # Mount uploads directory for persistent file storage
       - ./uploads:/app/uploads
-    
+
+      # Optional: Mount .env file for easy config changes
+      - ./.env:/app/.env
+
     # Override environment for development
     environment:
       - STREAMLIT_SERVER_FILE_WATCHER_TYPE=poll
       - STREAMLIT_SERVER_RUN_ON_SAVE=true
-    
+      - STREAMLIT_LOGGER_LEVEL=debug
+
     # Remove resource limits for development
     deploy:
       resources:
         limits:
           cpus: '4'
           memory: 4G
-    
+
     # Build with no cache for development
     build:
       context: .

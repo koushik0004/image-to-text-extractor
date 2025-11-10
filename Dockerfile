@@ -43,9 +43,13 @@ COPY requirements.txt .
 
 # Install Python dependencies using requirements.txt with PyTorch CPU wheels
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-# Install PyTorch CPU wheels first to ensure compatibility
+
+# Install PyTorch CPU wheels first to ensure compatibility with Python 3.12
+# This installs the latest compatible version from PyTorch CPU repository
 RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
 # Install remaining dependencies from requirements.txt
+# Note: torch and torchvision are NOT in requirements.txt - they're installed above
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download EasyOCR models during build for offline usage

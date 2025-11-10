@@ -105,8 +105,14 @@ if train_button:
     st.subheader("🔥 Training in Progress...")
 
     # Progress indicators
-    progress_bar = st.progress(0)
-    status_text = st.empty()
+    overall_progress_bar = st.progress(0, text="Starting training...")
+
+    # Create a container for epoch logs
+    epoch_logs_container = st.container()
+    epoch_logs = []
+
+    # Current metrics display
+    st.markdown("### 📊 Current Epoch Metrics")
     metrics_cols = st.columns(4)
 
     with metrics_cols[0]:
@@ -123,39 +129,87 @@ if train_button:
     model = MNISTNet()
     trainer = MNISTTrainer(model, device=device)
 
+    # Get total batches for progress calculation
+    from torch.utils.data import DataLoader
+    from torchvision import datasets, transforms
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])
+    temp_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+    total_batches = len(DataLoader(temp_dataset, batch_size=batch_size))
+
     # Callback for progress updates
     def training_callback(epoch, progress, train_loss, train_acc=None, test_loss=None, test_acc=None):
         overall_progress = (epoch - 1 + progress) / num_epochs
-        progress_bar.progress(overall_progress)
 
-        if train_acc is not None:  # End of epoch
-            status_text.text(f"Epoch {epoch}/{num_epochs} completed!")
+        if test_loss is not None and test_acc is not None:  # End of epoch - full metrics available
+            # Update overall progress
+            overall_progress_bar.progress(
+                overall_progress,
+                text=f"Epoch {epoch}/{num_epochs} completed ✓"
+            )
+
+            # Update current metrics
             train_loss_metric.metric("Train Loss", f"{train_loss:.4f}")
             train_acc_metric.metric("Train Accuracy", f"{train_acc:.2f}%")
             test_loss_metric.metric("Test Loss", f"{test_loss:.4f}")
             test_acc_metric.metric("Test Accuracy", f"{test_acc:.2f}%")
-        else:
-            status_text.text(f"Epoch {epoch}/{num_epochs} - Training: {progress*100:.1f}%")
+
+            # Create progress bar string
+            bar_length = 20
+            filled_length = bar_length
+            progress_bar_str = '━' * filled_length
+
+            # Add epoch log with rich formatting
+            epoch_log = f"""
+**Epoch {epoch}/{num_epochs}**
+`{total_batches}/{total_batches}` {progress_bar_str} **accuracy:** {train_acc/100:.4f} - **loss:** {train_loss:.4f} - **val_accuracy:** {test_acc/100:.4f} - **val_loss:** {test_loss:.4f} - **learning_rate:** {learning_rate:.4f}
+            """
+            epoch_logs.append(epoch_log)
+
+            # Display all epoch logs
+            with epoch_logs_container:
+                st.markdown("### 📝 Training Logs")
+                for log in epoch_logs:
+                    st.markdown(log)
+        elif train_acc is not None:  # During training - partial metrics
+            # Update progress during training
+            current_batch = int(progress * total_batches)
+            overall_progress_bar.progress(
+                overall_progress,
+                text=f"Epoch {epoch}/{num_epochs} - Batch {current_batch}/{total_batches}"
+            )
+
+            # Update training metrics in real-time
+            train_loss_metric.metric("Train Loss", f"{train_loss:.4f}")
+            train_acc_metric.metric("Train Accuracy", f"{train_acc:.2f}%")
+        else:  # Initial progress update
+            current_batch = int(progress * total_batches)
+            overall_progress_bar.progress(
+                overall_progress,
+                text=f"Epoch {epoch}/{num_epochs} - Batch {current_batch}/{total_batches}"
+            )
 
     # Train the model
-    with st.spinner("Training model... This may take a few minutes."):
-        history = trainer.train(
-            num_epochs=num_epochs,
-            learning_rate=learning_rate,
-            batch_size=batch_size,
-            callback=training_callback
-        )
+    history = trainer.train(
+        num_epochs=num_epochs,
+        learning_rate=learning_rate,
+        batch_size=batch_size,
+        callback=training_callback
+    )
 
-        # Save the model
-        os.makedirs('models', exist_ok=True)
-        trainer.save_model('models/mnist_model.pth')
+    # Save the model
+    os.makedirs('models', exist_ok=True)
+    trainer.save_model('models/mnist_model.pth')
 
-        # Update session state
-        st.session_state.model = model
-        st.session_state.model_trained = True
-        st.session_state.training_history = history
+    # Update session state
+    st.session_state.model = model
+    st.session_state.model_trained = True
+    st.session_state.training_history = history
 
-    progress_bar.progress(1.0)
+    # Complete progress bar
+    overall_progress_bar.progress(1.0, text="Training completed! ✅")
     st.success("🎉 Training completed successfully!")
 
     # Display training curves
@@ -226,7 +280,7 @@ else:
         if uploaded_file is not None:
             # Display the uploaded image
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True)
+            st.image(image, caption="Uploaded Image", width=None)
 
             # Predict button
             if st.button("🎯 Predict Digit", type="primary", use_container_width=True):

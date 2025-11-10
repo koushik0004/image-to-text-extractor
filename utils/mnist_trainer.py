@@ -125,10 +125,12 @@ class MNISTTrainer:
 
             running_loss += loss.item()
 
-            # Call callback for progress updates
-            if callback and batch_idx % 100 == 0:
-                progress = (batch_idx * len(data)) / len(train_loader.dataset)
-                callback(epoch, progress, loss.item())
+            # Call callback for progress updates (update every 50 batches for smoother progress)
+            if callback and batch_idx % 50 == 0:
+                progress = (batch_idx + 1) / len(train_loader)
+                current_acc = 100. * correct / total if total > 0 else 0
+                current_loss = running_loss / (batch_idx + 1)
+                callback(epoch, progress, current_loss, current_acc)
 
         avg_loss = running_loss / len(train_loader)
         accuracy = 100. * correct / total

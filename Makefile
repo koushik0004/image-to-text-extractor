@@ -86,6 +86,9 @@ test: ## Test the application
 stats: ## Show resource usage statistics
 	docker stats image-text-extractor
 
+stats-docker-compose: ## Show resource usage statistics
+	docker-compose ps -q | xargs docker stats --no-stream
+
 validate: ## Validate docker-compose configuration
 	@echo "$(BLUE)Validating configuration...$(NC)"
 	docker-compose config

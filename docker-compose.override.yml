@@ -36,6 +36,9 @@ services:
         limits:
           cpus: '4'
           memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 512M
 
     # Build with no cache for development
     build:

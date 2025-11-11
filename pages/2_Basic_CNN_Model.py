@@ -161,26 +161,53 @@ with col1:
     st.subheader("⚙️ Training Configuration")
 
     # Training parameters
-    num_epochs = st.slider("Number of Epochs", min_value=1, max_value=20, value=5, help="More epochs = better accuracy but longer training time")
-    learning_rate = st.select_slider("Learning Rate", options=[0.0001, 0.0005, 0.001, 0.005, 0.01], value=0.001)
-    batch_size = st.selectbox("Batch Size", options=[32, 64, 128, 256], index=1)
+    num_epochs = st.slider(
+        "Number of Epochs",
+        min_value=1,
+        max_value=20,
+        value=5,
+        help="More epochs = better accuracy but longer training time"
+    )
+    learning_rate = st.select_slider(
+        "Learning Rate",
+        options=[0.0001, 0.0005, 0.001, 0.005, 0.01],
+        value=0.001
+    )
+    batch_size = st.selectbox(
+        "Batch Size",
+        options=[32, 64, 128, 256],
+        index=1
+    )
 
 with col2:
     st.subheader("🚀 Actions")
 
     # Train button
-    train_button = st.button("🎯 Start Training", type="primary", use_container_width=True)
+    train_button = st.button(
+        "🎯 Start Training",
+        type="primary",
+        use_container_width=True
+    )
 
     # Load model button
     if os.path.exists(MODEL_PATH):
-        load_button = st.button("📂 Load Saved Model", use_container_width=True)
+        load_button = st.button(
+            "📂 Load Saved Model",
+            use_container_width=True
+        )
     else:
         load_button = False
+
+    # Important note about training
+    st.caption("⚠️ Note: Buttons will be disabled during training (2-5 minutes)")
 
 # Training logic
 if train_button:
     st.divider()
     st.subheader("🔥 Training in Progress...")
+
+    # Important warning
+    st.warning("⚠️ **Training started!** Please do not refresh the page or click other buttons. This will take 2-5 minutes depending on the number of epochs.")
 
     # Progress indicators
     overall_progress_bar = st.progress(0, text="Starting training...")
@@ -289,6 +316,7 @@ if train_button:
     # Complete progress bar
     overall_progress_bar.progress(1.0, text="Training completed! ✅")
     st.success("🎉 Training completed successfully!")
+    st.info("💡 Tip: Scroll up to see the training logs, or download your trained model from the sidebar!")
 
     # Display training curves
     st.subheader("📈 Training History")

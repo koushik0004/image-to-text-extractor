@@ -14,6 +14,10 @@ try:
 except ImportError as e:
     st.error(f"❌ Error importing utilities: {e}")
 
+# Constants
+MODEL_PATH = 'models/mnist_model.pth'
+MODELS_DIR = 'models'
+
 # Page configuration
 st.set_page_config(
     page_title="MNIST CNN - Image Text Extractor",
@@ -28,6 +32,29 @@ if 'model' not in st.session_state:
     st.session_state.model = None
 if 'training_history' not in st.session_state:
     st.session_state.training_history = None
+if 'auto_load_attempted' not in st.session_state:
+    st.session_state.auto_load_attempted = False
+
+# Auto-load existing model on first page load
+if not st.session_state.auto_load_attempted and not st.session_state.model_trained:
+    if os.path.exists(MODEL_PATH):
+        try:
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            model = MNISTNet()
+            trainer = MNISTTrainer(model, device=device)
+
+            if trainer.load_model(MODEL_PATH):
+                st.session_state.model = model
+                st.session_state.model_trained = True
+                st.session_state.training_history = {
+                    'train_losses': trainer.train_losses,
+                    'train_accuracies': trainer.train_accuracies,
+                    'test_losses': trainer.test_losses,
+                    'test_accuracies': trainer.test_accuracies
+                }
+        except Exception:
+            pass  # Silently fail, user can manually load
+    st.session_state.auto_load_attempted = True
 
 # Header
 st.title("🧠 Basic CNN Model from Scratch")
@@ -59,12 +86,63 @@ with st.sidebar:
     st.header("🔧 Model Status")
     if st.session_state.model_trained:
         st.success("✅ Model is trained and ready!")
+
+        # Download model button
+        if os.path.exists(MODEL_PATH):
+            with open(MODEL_PATH, 'rb') as f:
+                model_bytes = f.read()
+            st.download_button(
+                label="💾 Download Trained Model",
+                data=model_bytes,
+                file_name="mnist_cnn_model.pth",
+                mime="application/octet-stream",
+                help="Download the trained model to your computer",
+                use_container_width=True
+            )
     else:
         # Check if saved model exists
-        if os.path.exists('models/mnist_model.pth'):
-            st.warning("📦 Saved model found. Load it or train a new one.")
+        if os.path.exists(MODEL_PATH):
+            st.warning("📦 Saved model found. Load it below.")
         else:
             st.warning("⚠️ Model not trained yet.")
+
+    # Upload model section
+    st.header("📤 Upload Pre-trained Model")
+    uploaded_model = st.file_uploader(
+        "Upload a previously trained model",
+        type=["pth"],
+        help="Upload a .pth model file you downloaded earlier",
+        key="model_uploader"
+    )
+
+    if uploaded_model is not None:
+        if st.button("📥 Load Uploaded Model", use_container_width=True):
+            try:
+                # Save uploaded model to models directory
+                os.makedirs(MODELS_DIR, exist_ok=True)
+                with open(MODEL_PATH, 'wb') as f:
+                    f.write(uploaded_model.getbuffer())
+
+                # Load the model
+                device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                model = MNISTNet()
+                trainer = MNISTTrainer(model, device=device)
+
+                if trainer.load_model(MODEL_PATH):
+                    st.session_state.model = model
+                    st.session_state.model_trained = True
+                    st.session_state.training_history = {
+                        'train_losses': trainer.train_losses,
+                        'train_accuracies': trainer.train_accuracies,
+                        'test_losses': trainer.test_losses,
+                        'test_accuracies': trainer.test_accuracies
+                    }
+                    st.success("✅ Model uploaded and loaded successfully!")
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to load uploaded model. Please check the file.")
+            except Exception as e:
+                st.error(f"❌ Error loading model: {str(e)}")
 
     st.header("📊 Training Info")
     if st.session_state.training_history:
@@ -94,7 +172,7 @@ with col2:
     train_button = st.button("🎯 Start Training", type="primary", use_container_width=True)
 
     # Load model button
-    if os.path.exists('models/mnist_model.pth'):
+    if os.path.exists(MODEL_PATH):
         load_button = st.button("📂 Load Saved Model", use_container_width=True)
     else:
         load_button = False
@@ -200,8 +278,8 @@ if train_button:
     )
 
     # Save the model
-    os.makedirs('models', exist_ok=True)
-    trainer.save_model('models/mnist_model.pth')
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    trainer.save_model(MODEL_PATH)
 
     # Update session state
     st.session_state.model = model
@@ -244,7 +322,7 @@ if load_button:
     model = MNISTNet()
     trainer = MNISTTrainer(model, device=device)
 
-    if trainer.load_model('models/mnist_model.pth'):
+    if trainer.load_model(MODEL_PATH):
         st.session_state.model = model
         st.session_state.model_trained = True
         st.session_state.training_history = {
